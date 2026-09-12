@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { playSound } from "@/lib/fx";
+import Navbar from "@/components/Navbar";
 
 type ShopItem = {
   id: string;
@@ -106,19 +107,9 @@ export default function ShopPage() {
 
   return (
     <div className="grid-bg min-h-screen pb-16">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-void/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-                      <span className="font-[family-name:var(--font-display)] text-xl font-extrabold tracking-widest text-white">
-              A W A K E N<span className="text-system-bright">.</span>
-            </span>
-          <nav className="flex items-center gap-2">
-            <Link href="/" className="btn-ghost text-xs sm:text-sm">Command Center</Link>
-            <Link href="/quests" className="btn-ghost text-xs sm:text-sm">Battles</Link>
-            <Link href="/shop" className="btn-ghost text-xs sm:text-sm text-anima">Armory</Link>
-            <Link href="/profile" className="btn-ghost text-xs sm:text-sm">Profile</Link>
-          </nav>
-        </div>
-      </header>
+      <Navbar />
+
+      <main className="mx-auto max-w-6xl px-4 py-8"></main>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

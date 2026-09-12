@@ -1,61 +1,154 @@
 "use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
-import { Sword, Scroll, ShoppingBag, User, LogOut } from "lucide-react";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: Sword },
-  { href: "/quests", label: "Quests", icon: Scroll },
-  { href: "/shop", label: "Shop", icon: ShoppingBag },
-  { href: "/profile", label: "Profile", icon: User },
-];
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabaseClient";
+import { playSound } from "@/lib/fx";
 
 export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = async () => {
+  const links = [
+    { name: "Command Center", href: "/" },
+    { name: "Battles", href: "/quests" },
+    { name: "Armory", href: "/shop" },
+    { name: "Hunter Profile", href: "/profile" },
+  ];
+
+  async function handleLogout() {
+    playSound("click");
     await supabase.auth.signOut();
-    router.push("/auth");
-  };
+    router.replace("/auth");
+  }
 
   return (
-    <nav className="sticky top-0 z-50 bg-dungeon-900/90 backdrop-blur-md border-b border-gold-400/20">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="font-fantasy text-xl text-gold-400 font-bold">
-          ⚔️ Life RPG
-        </Link>
+    <>
+      <header className="sticky top-0 z-50 border-b border-border/80 bg-void/95 text-white shadow-md backdrop-blur-md transform-gpu">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+          
+          {/* Logo - Fixed wrapping issue with whitespace-nowrap and tracking */}
+          <Link
+            href="/"
+            onClick={() => playSound("click")}
+            className="whitespace-nowrap font-[family-name:var(--font-display)] text-xl font-extrabold tracking-[0.2em] sm:tracking-[0.3em]"
+          >
+            AWAKEN<span className="text-system-bright">.</span>
+          </Link>
 
-        <div className="flex items-center gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
+          {/* Desktop Nav */}
+          <nav className="hidden items-center gap-2 md:flex">
+            {links.map((link) => (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-gold-400/20 text-gold-400"
-                    : "text-parchment/60 hover:text-parchment hover:bg-dungeon-700"
+                key={link.href}
+                href={link.href}
+                onClick={() => playSound("click")}
+                className={`btn-ghost text-sm ${
+                  pathname === link.href ? "text-cyan border-cyan/30 bg-cyan/10" : ""
                 }`}
               >
-                <Icon size={16} />
-                <span className="hidden sm:inline">{item.label}</span>
+                {link.name}
               </Link>
-            );
-          })}
+            ))}
+            <button type="button" onClick={handleLogout} className="btn-ghost text-sm text-danger hover:text-danger-glow">
+              Logout
+            </button>
+          </nav>
+
+          {/* Mobile Hamburger Button */}
           <button
-            onClick={handleLogout}
-            className="ml-2 p-2 text-parchment/40 hover:text-red-400 transition-colors"
-            aria-label="Logout"
+            type="button"
+            className="p-2 text-white md:hidden"
+            onClick={() => {
+              playSound("click");
+              setIsOpen(true);
+            }}
           >
-            <LogOut size={16} />
+            <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
           </button>
         </div>
-      </div>
-    </nav>
+      </header>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-[60] bg-void/80 backdrop-blur-sm md:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed right-0 top-0 bottom-0 z-[70] flex w-64 flex-col border-l border-border bg-panel shadow-2xl md:hidden transform-gpu"
+            >
+              <div className="flex items-center justify-between border-b border-border/50 p-4">
+                <span className="font-[family-name:var(--font-display)] text-sm font-bold tracking-widest text-cyan uppercase">
+                  System Menu
+                </span>
+                <button
+                  type="button"
+                  className="p-2 text-muted hover:text-white"
+                  onClick={() => {
+                    playSound("click");
+                    setIsOpen(false);
+                  }}
+                >
+                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <nav className="flex flex-col gap-2 p-4">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => {
+                      playSound("click");
+                      setIsOpen(false);
+                    }}
+                    className={`rounded-xl px-4 py-3 font-[family-name:var(--font-display)] text-sm font-bold uppercase tracking-wide transition-colors ${
+                      pathname === link.href
+                        ? "bg-system text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]"
+                        : "bg-void/50 text-muted hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </nav>
+
+              <div className="mt-auto p-4 border-t border-border/50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-bold text-danger-glow transition hover:bg-danger/20"
+                >
+                  LOGOUT
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

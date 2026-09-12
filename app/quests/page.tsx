@@ -13,6 +13,7 @@ import {
   getXpForLevel,
 } from "@/lib/rpg";
 import { playSound } from "@/lib/fx";
+import Navbar from "@/components/Navbar";
 
 type Task = {
   id: string;
@@ -394,30 +395,9 @@ export default function QuestsPage() {
 
   return (
     <div className="grid-bg min-h-screen overflow-hidden pb-16">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-void/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-          <Link
-            href="/"
-            className="font-[family-name:var(--font-display)] text-xl font-extrabold tracking-widest text-white"
-          >
-            A W A K E N<span className="text-system-bright">.</span>
-          </Link>
-          <nav className="flex items-center gap-2">
-            <Link href="/" className="btn-ghost text-xs sm:text-sm">
-              Command Center
-            </Link>
-            <Link href="/quests" className="btn-ghost text-xs sm:text-sm text-cyan">
-              Battles
-            </Link>
-            <Link href="/shop" className="btn-ghost text-xs sm:text-sm">
-              Armory
-            </Link>
-            <Link href="/profile" className="btn-ghost text-xs sm:text-sm">
-              Profile
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Navbar />
+
+      <main className="mx-auto max-w-6xl px-4 py-8"></main>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-12">

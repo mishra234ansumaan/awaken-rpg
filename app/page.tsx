@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 import HeroPortrait from "@/components/HeroPortrait";
 import { getXpForLevel } from "@/lib/rpg";
 import { playSound } from "@/lib/fx";
+import Navbar from "@/components/Navbar";
 
 type Profile = {
   id: string;
@@ -90,35 +91,9 @@ export default function CommandCenterPage() {
 
   return (
     <div className="grid-bg min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-void/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-3">
-            <span className="font-[family-name:var(--font-display)] text-lg font-extrabold tracking-wide text-white">
-             A W A K E N<span className="text-system-bright">.</span>
-            </span>
-            <span className="hidden rounded-full border border-cyan/30 bg-cyan/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-cyan uppercase sm:inline">
-              Command Center
-            </span>
-          </div>
-          <nav className="flex items-center gap-1 sm:gap-2">
-            <Link href="/" className="btn-ghost text-xs sm:text-sm">
-              Base
-            </Link>
-            <Link href="/quests" className="btn-ghost text-xs sm:text-sm">
-              Battles
-            </Link>
-            <Link href="/shop" className="btn-ghost text-xs sm:text-sm">
-              Shop
-            </Link>
-            <Link href="/profile" className="btn-ghost text-xs sm:text-sm">
-              Hunter
-            </Link>
-            <button type="button" onClick={signOut} className="btn-ghost text-xs sm:text-sm">
-              Logout
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Navbar />
+
+      <main className="mx-auto max-w-6xl px-4 py-8"></main>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
         <motion.div
