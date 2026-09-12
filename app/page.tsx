@@ -1,68 +1,211 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabaseClient";
+import HeroPortrait from "@/components/HeroPortrait";
+import { getXpForLevel } from "@/lib/rpg";
+import { playSound } from "@/lib/fx";
+
+type Profile = {
+  id: string;
+  username: string;
+  title: string;
+  level: number;
+  xp: number;
+  anima_cores: number;
+  streak: number;
+  max_streak: number;
+  avatar_seed: string | null;
+  intro_completed: boolean;
+};
+
+export default function CommandCenterPage() {
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
+      if (!session) {
+        router.replace("/auth");
+        return;
+      }
+
+      const { data: prof, error } = await supabase
+        .from("profiles")
+        .select(
+          "id, username, title, level, xp, anima_cores, streak, max_streak, avatar_seed, intro_completed"
+        )
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (!alive) return;
+
+      if (error) {
+        console.error(error);
+        setLoading(false);
+        return;
+      }
+
+      if (!prof || !prof.intro_completed) {
+        router.replace("/intro");
+        return;
+      }
+
+      setProfile(prof as Profile);
+      setLoading(false);
+      playSound("boot");
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [router]);
+
+  async function signOut() {
+    playSound("click");
+    await supabase.auth.signOut();
+    router.replace("/auth");
+  }
+
+  if (loading || !profile) {
+    return (
+      <div className="grid-bg flex min-h-screen items-center justify-center">
+        <p className="font-[family-name:var(--font-display)] tracking-[0.3em] text-system-bright uppercase">
+          Loading Command Center...
+        </p>
+      </div>
+    );
+  }
+
+  // SAME formula as Profile page
+  const need = getXpForLevel(profile.level);
+  const xpPct = Math.min(100, Math.round((profile.xp / Math.max(need, 1)) * 100));
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="grid-bg min-h-screen">
+      <header className="sticky top-0 z-40 border-b border-border/80 bg-void/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+          <div className="flex items-center gap-3">
+            <span className="font-[family-name:var(--font-display)] text-lg font-extrabold tracking-wide text-white">
+             A W A K E N<span className="text-system-bright">.</span>
+            </span>
+            <span className="hidden rounded-full border border-cyan/30 bg-cyan/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-cyan uppercase sm:inline">
+              Command Center
+            </span>
+          </div>
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <Link href="/" className="btn-ghost text-xs sm:text-sm">
+              Base
+            </Link>
+            <Link href="/quests" className="btn-ghost text-xs sm:text-sm">
+              Battles
+            </Link>
+            <Link href="/shop" className="btn-ghost text-xs sm:text-sm">
+              Shop
+            </Link>
+            <Link href="/profile" className="btn-ghost text-xs sm:text-sm">
+              Hunter
+            </Link>
+            <button type="button" onClick={signOut} className="btn-ghost text-xs sm:text-sm">
+              Logout
+            </button>
+          </nav>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <motion.div
+          className="sys-panel sys-panel-glow p-6 sm:p-8"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-5">
+              <HeroPortrait
+                seed={profile.avatar_seed || profile.username}
+                level={profile.level}
+                title={profile.title}
+                size={96}
+              />
+              <div>
+                <p className="text-xs font-bold tracking-[0.25em] text-cyan uppercase">Hunter ID</p>
+                <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-white text-glow-system">
+                  {profile.username}
+                </h1>
+                <p className="mt-1 text-sm text-muted">{profile.title}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="rounded-xl border border-border bg-void/50 px-3 py-3">
+                <div className="text-[10px] tracking-widest text-dim uppercase">Streak</div>
+                <div className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-cyan">
+                  {profile.streak}d
+                </div>
+              </div>
+              <div className="rounded-xl border border-border bg-void/50 px-3 py-3">
+                <div className="text-[10px] tracking-widest text-dim uppercase">Anima</div>
+                <div className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-anima text-glow-anima">
+                  💎 {profile.anima_cores}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border bg-void/50 px-3 py-3">
+                <div className="text-[10px] tracking-widest text-dim uppercase">Best</div>
+                <div className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-system-bright">
+                  {profile.max_streak}d
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <div className="mb-2 flex items-end justify-between">
+              <span className="font-[family-name:var(--font-display)] text-sm font-bold tracking-wide text-system-bright uppercase">
+                Level {profile.level}
+              </span>
+              <span className="text-xs text-muted">
+                {profile.xp} / {need} XP
+              </span>
+            </div>
+            <div className="xp-track h-3">
+              <div className="xp-fill" style={{ width: `${xpPct}%` }} />
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <Link
+              href="/quests"
+              className="group rounded-2xl border border-border bg-panel-2/80 p-5 transition hover:border-system-bright/50 hover:shadow-[0_0_30px_rgba(124,58,237,0.15)]"
+              onClick={() => playSound("click")}
+            >
+              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-white group-hover:text-system-bright">
+                ⚔️ Open Battle Log
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Scan threats. Strike bosses. Clear obstacles.
+              </p>
+            </Link>
+            <Link
+              href="/shop"
+              className="group rounded-2xl border border-border bg-panel-2/80 p-5 transition hover:border-anima/40 hover:shadow-[0_0_30px_rgba(251,191,36,0.12)]"
+              onClick={() => playSound("click")}
+            >
+              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-white group-hover:text-anima">
+                💎 Anima Armory
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Potions, blades, titles — real power upgrades.
+              </p>
+            </Link>
+          </div>
+        </motion.div>
       </main>
     </div>
   );
