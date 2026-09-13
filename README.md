@@ -1,4 +1,4 @@
-# AWAKEN. ⚔️ (Solo Leveling / Life RPG)
+# AWAKEN. ⚔️ (Solo Leveling / AWAKEN RPG)
 
 > *"Your daily tasks are no longer chores — they are Battles. Defeat your demons. Reclaim your potential. Level Up."*
 

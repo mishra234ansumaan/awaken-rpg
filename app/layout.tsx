@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Life RPG — System Awakening",
+  title: " AWAKEN RPG — System Awakening",
   description: "Your tasks are Boss Battles. Defeat The Apathy. Level Up.",
 };
 
