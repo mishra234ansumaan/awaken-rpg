@@ -158,7 +158,7 @@ export default function AuthPage() {
       >
         <div className="mb-8 text-center">
           <p className="font-[family-name:var(--font-display)] text-[11px] font-bold tracking-[0.4em] text-cyan uppercase">
-            Life RPG // System
+            AWAKEN// System
           </p>
           <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-extrabold text-white text-glow-system">
             {mode === "signup" ? "Awaken" : "Re-Link"}
